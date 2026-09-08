@@ -6,11 +6,7 @@
 class BlackScholesModel;
 class Option;
 
-struct PriceAndCI
-{
-    double price;
-    double ci;
-};
+struct PriceAndStdDev { double price; double std_dev; };
 
 class MonteCarlo{
     private:
@@ -22,5 +18,7 @@ class MonteCarlo{
     public:
         MonteCarlo(BlackScholesModel& model, const Option& option, std::size_t num_iterations);
         ~MonteCarlo();
-        PriceAndCI price(const PnlMat* past, double t);
+        MonteCarlo(const MonteCarlo&) = delete;
+        MonteCarlo& operator=(const MonteCarlo&) = delete;
+        PriceAndStdDev price(const PnlMat* past, double t);
 };

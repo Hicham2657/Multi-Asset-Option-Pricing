@@ -4,7 +4,7 @@
 #include <algorithm>
 
 
-Basket::Basket(PnlVect* weights, std::size_t num_steps, double strike): Option(weights, num_steps), _strike(strike){}
+Basket::Basket(const PnlVect* weights, std::size_t num_steps, double strike): Option(weights, num_steps), _strike(strike){}
 
 double Basket::ComputePayoff(const PnlMat* spots) const{
     PnlVect S_T = pnl_vect_wrap_mat_row(spots, spots->m -1);

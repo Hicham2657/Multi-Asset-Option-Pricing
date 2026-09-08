@@ -13,8 +13,10 @@ class BlackScholesModel{
         PnlVect* _G;
         
     public:
-        BlackScholesModel(double riskFreeRate, PnlVect* sigmas, double timeHorizon, double correlation);
+        BlackScholesModel(double riskFreeRate, const PnlVect* sigmas, double timeHorizon, double correlation);
         ~BlackScholesModel();
+        BlackScholesModel(const BlackScholesModel&) = delete;
+        BlackScholesModel& operator=(const BlackScholesModel&) = delete;
         void asset(const PnlMat *past, double t, PnlMat *path, PnlRng *rng);
         std::size_t getD() const;
         double getRiskFreeRate() const ;
