@@ -19,5 +19,7 @@ class BlackScholesModel{
         std::size_t getD() const;
         double getRiskFreeRate() const ;
         double getTimeHorizon() const;
+        PnlMat *generateTildePath(PnlRng *rng,int K, int D, int N,double dt);
+        void buildPath(PnlMat* stildas, PnlMat* path, int K, int D, int N);
 
 };
