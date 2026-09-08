@@ -18,15 +18,16 @@ int main(){
     MonteCarlo mc{model, Call, 100};
     double ref = pnl_bs_call(100.0, 100.0, 1.0, 0.05, 0.0, 0.2);
 
-//     int inside = 0;
-//     for (int k = 1; k <= 10; ++k) {
-//         PriceAndCI res = mc.price(past, 0.0);
-//         bool ok = std::abs(res.price - ref) < res.ci;
-//         inside += ok;
-//         std::cout << "run " << k << " : " << res.price
-//                 << " +/- " << res.ci << (ok ? "  OK" : "  HORS") << "\n";
-// }
-// std::cout << inside << "/10 dans l'IC\n";
+    int inside = 0;
+    for (int k = 1; k <= 10; ++k) {
+        PriceAndCI res = mc.price(past, 0.0);
+        bool ok = std::abs(res.price - ref) < res.ci;
+        inside += ok;
+        std::cout << "run " << k << " : " << res.price
+                << " +/- " << res.ci << (ok ? "  OK" : "  HORS") << "\n";
+}
+    std::cout << inside << "/10 dans l'IC\n";
+    pnl_mat_free(&past);
 
 // PnlVect* weights1 = pnl_vect_create_from_scalar(1, 1.0); 
 //     AsianOption Asian{weights1, 10, 100.0};
