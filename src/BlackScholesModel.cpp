@@ -1,11 +1,16 @@
 #include "BlackScholesModel.hpp"
 #include <cmath>
+#include <stdexcept>
 
-BlackScholesModel::BlackScholesModel(double riskFreeRate, PnlVect* sigmas, double timeHorizon,double correlation)
-    : _riskFreeRate(riskFreeRate), _sigmas(sigmas),_timeHorizon(timeHorizon), _correlation(correlation) {
+BlackScholesModel::BlackScholesModel(double riskFreeRate, const PnlVect* sigmas, double timeHorizon,double correlation)
+    : _riskFreeRate(riskFreeRate), _sigmas(pnl_vect_copy(sigmas)),_timeHorizon(timeHorizon), _correlation(correlation) {
     _cholesky = pnl_mat_create_from_scalar(getD(), getD(), correlation);
     pnl_mat_set_diag(_cholesky, 1.0, 0);
-    pnl_mat_chol(_cholesky);
+    if (pnl_mat_chol(_cholesky) != 0) {
+        pnl_vect_free(&_sigmas);
+        pnl_mat_free(&_cholesky);
+        throw std::invalid_argument("correlation matrix is not positive definite");
+    }
     _G = pnl_vect_new();
 }
 

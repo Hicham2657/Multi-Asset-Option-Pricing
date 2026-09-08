@@ -8,10 +8,12 @@ protected:
     PnlVect* _weights;
     std::size_t _num_steps;
 public:
-    Option(PnlVect* weights, std::size_t num_steps);
+    Option(const PnlVect* weights, std::size_t num_steps);
     virtual ~Option();
+    Option(const Option&) = delete;
+    Option& operator=(const Option&) = delete;
     virtual double ComputePayoff(const PnlMat *spots) const = 0;
 
-    PnlVect* GetWeights() const;
+    const PnlVect* GetWeights() const;
     std::size_t GetNumSteps() const;
 };

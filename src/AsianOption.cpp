@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <pnl/pnl_vector.h>
 
-AsianOption::AsianOption(PnlVect* weights, int num_steps, double strike)
+AsianOption::AsianOption(const PnlVect* weights, std::size_t num_steps, double strike)
     : Option(weights, num_steps), _strike(strike) {}
 
 double AsianOption::ComputePayoff(const PnlMat* spots) const

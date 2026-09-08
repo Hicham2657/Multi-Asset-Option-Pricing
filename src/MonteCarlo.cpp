@@ -15,7 +15,7 @@ MonteCarlo::~MonteCarlo(){
     pnl_mat_free(&_path);
 }
 
-PriceAndCI MonteCarlo::price(const PnlMat* past, double t){
+PriceAndStdDev MonteCarlo::price(const PnlMat* past, double t){
     double sum = 0.0;
     double s_sum = 0.0;
     double T = _model.getTimeHorizon();
@@ -29,10 +29,10 @@ PriceAndCI MonteCarlo::price(const PnlMat* past, double t){
         s_sum += payoff*payoff;
     }
 
-    PriceAndCI result;
+    PriceAndStdDev result;
     result.price = discount_factor * sum/M;
     double variance =  discount_factor * discount_factor * (s_sum/ M - (sum/M)*(sum/M));
-    result.ci = 1.96 * std::sqrt(variance / M);
+    result.std_dev = std::sqrt(variance / M);
     return result;
 
 }
