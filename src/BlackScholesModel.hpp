@@ -1,0 +1,23 @@
+#pragma once
+#include <pnl/pnl_matvect.h>
+#include <pnl/pnl_random.h>
+
+
+class BlackScholesModel{
+    private:
+        double _riskFreeRate;
+        PnlVect* _sigmas;
+        double _timeHorizon;
+        double _correlation;
+        PnlMat* _cholesky;
+        PnlVect* _G;
+        
+    public:
+        BlackScholesModel(double riskFreeRate, PnlVect* sigmas, double timeHorizon, double correlation);
+        ~BlackScholesModel();
+        void asset(const PnlMat *past, double t, PnlMat *path, PnlRng *rng);
+        std::size_t getD() const;
+        double getRiskFreeRate() const ;
+        double getTimeHorizon() const;
+
+};
