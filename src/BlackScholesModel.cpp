@@ -20,29 +20,81 @@ BlackScholesModel::~BlackScholesModel() {
     pnl_vect_free(&_G);
 }
 
-void BlackScholesModel::asset(const PnlMat *past, double t, PnlMat *path, PnlRng *rng){
-    int N = path->m - 1;
-    int D = path->n;
-    double dt = _timeHorizon/static_cast<double>(N);
-    double sqrt_dt = std::sqrt(dt);
+double my_exp(double x)
+{
+    return std::exp(x);
+};
 
-    PnlVect S_t = pnl_vect_wrap_mat_row(past, past->m - 1);
-    pnl_mat_set_row(path, &S_t, 0);
 
-    int start = 0;
-    for (int i = start+1; i<N+1; ++i){
+PnlMat* BlackScholesModel::generateTildePath( PnlRng *rng,int K, int D, int N,double dt){
+    PnlMat* stildas = pnl_mat_create_from_zero(K, D);
+    for (int i =0 ; i < K; i++) {
         pnl_vect_rng_normal_d(_G, D, rng);
-        for (int d = 0; d<D; ++d){
-            PnlVect L_d = pnl_vect_wrap_mat_row(_cholesky, d);
-            double sigma_d = GET(_sigmas, d);
-            double drift = (_riskFreeRate - sigma_d*sigma_d/2)* dt;
-            double diffusion = sigma_d*sqrt_dt* pnl_vect_scalar_prod(&L_d, _G);
-            double S_i_d = MGET(path, i-1, d) * std::exp(drift + diffusion);
-            MLET(path, i, d) = S_i_d;
+
+        PnlVect* diffusion = pnl_vect_new();
+        pnl_mat_mult_vect_inplace(diffusion, _cholesky, _G);
+        
+        pnl_vect_mult_vect_term(diffusion, _sigmas);
+        pnl_vect_mult_scalar(diffusion,sqrt(dt));
+        
+        
+        PnlVect* drift = pnl_vect_copy(_sigmas);
+
+        // drift = sigma^2
+        pnl_vect_mult_vect_term(drift, _sigmas);
+
+        // drift = - sigma^2 / 2
+        pnl_vect_mult_scalar(drift, -0.5);
+
+        // drift = r - sigma^2 / 2
+        pnl_vect_plus_scalar(drift, _riskFreeRate);
+
+        // drift = (r - sigma^2 / 2) * dt
+        pnl_vect_mult_scalar(drift, dt);
+
+        PnlVect* s_tilda=pnl_vect_copy(drift);
+        pnl_vect_plus_vect(s_tilda, diffusion);
+
+        pnl_vect_map_inplace(s_tilda, my_exp);
+
+        pnl_mat_set_row(stildas, s_tilda, N-K+i);
+        pnl_vect_free(&diffusion);
+        pnl_vect_free(&drift);
+        pnl_vect_free(&s_tilda);
+    }
+    return stildas;
+};
+    
+
+
+void BlackScholesModel::buildPath(PnlMat* stildas, PnlMat* path, int K, int D, int N){
+    for (int i = 0; i < K; i++) {
+        for (int d = 0; d < D; d++) {
+            double s_tilda = MGET(stildas, i, d);
+            double s_prev = MGET(path, N-K+i-1, d);
+            MLET(path, N-K+i, d) = s_prev * s_tilda;
         }
     }
 }
 
-std::size_t BlackScholesModel::getD() const{return _sigmas->size;}
+
+void BlackScholesModel::asset(const PnlMat *past, double t, PnlMat *path, PnlRng *rng){
+    int N = path->m - 1;
+    int D = path->n;
+    double dt = _timeHorizon/static_cast<double>(N);
+
+    for (int i = 0; i < past->m; i++){
+        PnlVect* row = pnl_vect_new();
+        pnl_mat_get_row(row, past, i);
+        pnl_mat_set_row(path, row, i);
+        pnl_vect_free(&row);
+    }
+
+    PnlMat* stildas = generateTildePath(rng, N, D, N, dt);
+    buildPath(stildas, path, N, D, N);
+    pnl_mat_free(&stildas);
+}
+
+
 double BlackScholesModel::getRiskFreeRate() const{return _riskFreeRate;}
 double BlackScholesModel::getTimeHorizon() const {return _timeHorizon;}
