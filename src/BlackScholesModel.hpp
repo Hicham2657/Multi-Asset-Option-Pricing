@@ -11,6 +11,7 @@ class BlackScholesModel{
         double _correlation;
         PnlMat* _cholesky;
         PnlVect* _G;
+        PnlMat* _S_tildas;
         
     public:
         BlackScholesModel(double riskFreeRate, const PnlVect* sigmas, double timeHorizon, double correlation);
@@ -18,10 +19,10 @@ class BlackScholesModel{
         BlackScholesModel(const BlackScholesModel&) = delete;
         BlackScholesModel& operator=(const BlackScholesModel&) = delete;
         void asset(const PnlMat *past, double t, PnlMat *path, PnlRng *rng);
-        std::size_t getD() const;
+        int getD() const;
         double getRiskFreeRate() const ;
         double getTimeHorizon() const;
-        PnlMat *generateTildePath(PnlRng *rng,int K, int D, int N,double dt);
-        void buildPath(PnlMat* stildas, PnlMat* path, int K, int D, int N);
+        void generateTildePath(int K, int N, PnlRng* rng);
+        void buildPath(PnlMat* path, int K);
 
 };

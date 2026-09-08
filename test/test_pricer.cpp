@@ -18,7 +18,7 @@ namespace
     constexpr double MATURITY = 1.0;
     constexpr double RATE = 0.05;
     constexpr double VOLATILITY = 0.2;
-    constexpr std::size_t SAMPLES = 10000;
+    constexpr std::size_t SAMPLES = 100000;
 
     int failures = 0;
 
