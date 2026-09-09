@@ -23,6 +23,6 @@ class BlackScholesModel{
         double getRiskFreeRate() const ;
         double getTimeHorizon() const;
         void simulateSTilde(int K, int N, double first_step, PnlRng* rng);
-        void buildPathFromSTilde(PnlMat* path, int K, PnlVect* s_t);
+        void buildPathFromSTilde(PnlMat* path, int K, const PnlVect* s_t);
 
 };
