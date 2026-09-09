@@ -24,5 +24,7 @@ class BlackScholesModel{
         double getTimeHorizon() const;
         void simulateSTilde(int K, int N, double first_step, PnlRng* rng);
         void buildPathFromSTilde(PnlMat* path, int K, const PnlVect* s_t);
+        double shift_asset(double t, PnlMat* path1, PnlMat* path2,double fdstep, int asset_i);
+        double unshift_asset(double t, PnlMat* path1, PnlMat* path2,double fdstep, int asset_i);
 
 };
