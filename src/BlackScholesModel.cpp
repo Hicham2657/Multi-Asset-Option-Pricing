@@ -74,6 +74,24 @@ void BlackScholesModel::asset(const PnlMat *past, double t, PnlMat *path, PnlRng
     buildPathFromSTilde(path, i, &S_t);
 }
 
+double BlackScholesModel::shift_asset(double t, PnlMat* path1, PnlMat* path2,double fdstep, int asset_i){
+    int N = path1->m;
+    int i = compute_last_index(t, _timeHorizon, N);
+    for (int j=i+1;j<=N;j++){
+        pnl_mat_set(path1, j, asset_i, pnl_mat_get(path1,j, asset_i) * (1.0 + fdstep));
+        pnl_mat_set(path2, j, asset_i, pnl_mat_get(path2, j, asset_i) * (1.0 - fdstep));
+    }
+}
+double BlackScholesModel::unshift_asset(double t, PnlMat* path1, PnlMat* path2,double fdstep, int asset_i){
+    int N = path1->m;
+    int i = compute_last_index(t, _timeHorizon, N);
+    for (int j=i+1;j<=N;j++){
+        pnl_mat_set(path1, j, asset_i, pnl_mat_get(path1,j, asset_i) / (1.0 + fdstep));
+        pnl_mat_set(path2, j, asset_i, pnl_mat_get(path2, j, asset_i) / (1.0 - fdstep));
+    }
+}
+
+
 int BlackScholesModel::getD() const{return _sigmas->size;}
 double BlackScholesModel::getRiskFreeRate() const{return _riskFreeRate;}
 double BlackScholesModel::getTimeHorizon() const {return _timeHorizon;}
