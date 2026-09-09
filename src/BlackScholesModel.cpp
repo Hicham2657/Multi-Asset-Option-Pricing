@@ -1,6 +1,7 @@
 #include "BlackScholesModel.hpp"
 #include <cmath>
 #include <stdexcept>
+#include "utils.hpp"
 
 BlackScholesModel::BlackScholesModel(double riskFreeRate, const PnlVect* sigmas, double timeHorizon,double correlation)
     : _riskFreeRate(riskFreeRate), _sigmas(pnl_vect_copy(sigmas)),_timeHorizon(timeHorizon), _correlation(correlation) {
@@ -22,49 +23,35 @@ BlackScholesModel::~BlackScholesModel() {
     pnl_mat_free(&_sTilde);
 }
 
-double EPS = 1E-10;
-// helper donné par les profs
-int compute_last_index(double t, double T, int N) {
-    double dt = T / N;
-    int nearest_index = std::round(t / dt);
-    if (std::fabs(nearest_index * dt - t) < EPS) {
-        return nearest_index;
-    } else {
-        return int(t / dt);
-    }
-}
-
 // first step = (t_{i+1} - t) if t not among t_i's
-void BlackScholesModel::simulateSTilde(int K, int N, double first_step, PnlRng* rng){
+void BlackScholesModel::simulateSTilde(int start, int N, double first_step, PnlRng* rng){
     int D = getD();
-    pnl_mat_resize(_sTilde, K, D);
+    int s_tilde_size = N - start;
+    pnl_mat_resize(_sTilde, s_tilde_size, D);
     double dt = _timeHorizon/static_cast<double>(N);
 
-    for (int i = 0; i<K; ++i){
+    for (int i = 0; i< s_tilde_size; ++i){
         pnl_vect_rng_normal_d(_G, D, rng);
-        double step = (i==0) ? first_step : dt;
+        double step = (i == 0) ? first_step : dt;
         double sqrt_step = std::sqrt(step);
         for (int d = 0; d<D; ++d){
             PnlVect L_d = pnl_vect_wrap_mat_row(_cholesky, d);
             double sigma_d = GET(_sigmas, d);
             double drift = (_riskFreeRate - sigma_d*sigma_d/2)* step;
             double diffusion = sigma_d*sqrt_step* pnl_vect_scalar_prod(&L_d, _G);
-            MLET(_sTilde, i, d) = std::exp(drift + diffusion);
+            double previous = (i == 0) ? 1.0 : MGET(_sTilde, i-1, d);
+            MLET(_sTilde, i, d) = previous * std::exp(drift + diffusion);
         }
     }
 }
 
-void BlackScholesModel::buildPathFromSTilde(PnlMat* path, int K, PnlVect* s_t){
+void BlackScholesModel::buildPathFromSTilde(PnlMat* path, int start, const PnlVect* S_t){
     int N = path->m - 1;
     int D = getD();
 
-    for (int d = 0; d<D; ++d){
-        MLET(path, N-K+1 ,d) =  GET(s_t, d)* MGET(_sTilde, 0, d);
-    }
-
-    for (int i = 1; i<K; ++i){
-        for (int d = 0; d <D; ++d){
-            MLET(path, N-K+i+1, d) = MGET(path, N-K+i, d) * MGET(_sTilde, i, d); 
+    for (int i = start + 1; i<=N; ++i){
+        for (int d = 0; d<D; ++d){
+            MLET(path, i, d) = GET(S_t, d) * MGET(_sTilde, i- start - 1, d);
         }
     }
 }
@@ -76,17 +63,15 @@ void BlackScholesModel::asset(const PnlMat *past, double t, PnlMat *path, PnlRng
     double dt = _timeHorizon/N;
 
     for (int l = 0; l <= i; l++){
-        PnlVect past_ith_row = pnl_vect_wrap_mat_row(past, l);
-        pnl_mat_set_row(path, &past_ith_row, l);
+        PnlVect past_l_th_row = pnl_vect_wrap_mat_row(past, l);
+        pnl_mat_set_row(path, &past_l_th_row, l);
     }
     
-    PnlVect S_t = pnl_vect_wrap_mat_row(past, past->m - 1);
-    double first_step = (std::abs(t - i*dt) < EPS) ? dt : (i+1)*dt - t;
+    const PnlVect S_t = pnl_vect_wrap_mat_row(past, past->m - 1); // last row of past
+    double first_step = (i + 1) * dt - t;
 
-
-    int K = N - i; //why not N+1-i
-    simulateSTilde(K, N, first_step, rng);
-    buildPathFromSTilde(path, K, &S_t);
+    simulateSTilde(i, N, first_step, rng);
+    buildPathFromSTilde(path, i, &S_t);
 }
 
 int BlackScholesModel::getD() const{return _sigmas->size;}
