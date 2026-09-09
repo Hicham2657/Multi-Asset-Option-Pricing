@@ -11,7 +11,7 @@ class BlackScholesModel{
         double _correlation;
         PnlMat* _cholesky;
         PnlVect* _G;
-        PnlMat* _S_tildas;
+        PnlMat* _sTilde;
         
     public:
         BlackScholesModel(double riskFreeRate, const PnlVect* sigmas, double timeHorizon, double correlation);
@@ -22,7 +22,7 @@ class BlackScholesModel{
         int getD() const;
         double getRiskFreeRate() const ;
         double getTimeHorizon() const;
-        void generateTildePath(int K, int N, PnlRng* rng);
-        void buildPath(PnlMat* path, int K);
+        void simulateSTilde(int K, int N, double first_step, PnlRng* rng);
+        void buildPathFromSTilde(PnlMat* path, int K, PnlVect* s_t);
 
 };
