@@ -21,6 +21,6 @@ class MonteCarlo{
         MonteCarlo(const MonteCarlo&) = delete;
         MonteCarlo& operator=(const MonteCarlo&) = delete;
         PriceAndStdDev price(const PnlMat* past, double t);
-        void delta(const PnlMat* path,double t,double fdstep, PnlVect* deltas);
+        void delta(const PnlMat* past,double t,double fdstep, PnlVect* deltas, int M);
 
 };
