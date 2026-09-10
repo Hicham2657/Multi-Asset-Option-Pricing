@@ -6,5 +6,6 @@
 
 void to_json(nlohmann::ordered_json &j, PnlVect *vect);
 void to_json(nlohmann::json &j, PnlVect *vect);
+void to_json(nlohmann::json &j, const PnlVect *vect);
 void from_json(const nlohmann::json &j, PnlVect *&vect);
 void from_json(const nlohmann::json &j, PnlMat *&mat);

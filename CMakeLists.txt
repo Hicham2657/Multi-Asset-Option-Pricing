@@ -44,6 +44,7 @@ endif()
 
 # Test the parser
 add_executable(test_json_reader src/json_helper.cpp test/test_json_reader.cpp)
+target_include_directories(test_json_reader PRIVATE ${PROJECT_SOURCE_DIR}/src)
 target_link_libraries(test_json_reader
     ${PNL_LIBRARIES}
     nlohmann_json::nlohmann_json
@@ -53,18 +54,16 @@ pnl_add_postbuild(test_json_reader)
 add_executable(test_compute_lastdate test/test_compute_lastdate.cpp)
 
 # Pour compiler vos exécutables, compléter les lignes ci-dessous.
+# La cible price0 est définie plus bas (après PRICER_SOURCES / IO_SOURCES).
 
-# add_executable(price0 _liste_des_fichiers_cpp)
-# target_link_libraries(price0
-#     ${PNL_LIBRARIES}
-#     nlohmann_json::nlohmann_json
-# )
-
-# add_executable(hedge _liste_des_fichiers_cpp)
+# add_executable(hedge src/hedge.cpp ${PRICER_SOURCES} ${IO_SOURCES})
+# target_include_directories(hedge PRIVATE ${PROJECT_SOURCE_DIR}/src)
 # target_link_libraries(hedge
 #     ${PNL_LIBRARIES}
 #     nlohmann_json::nlohmann_json
 # )
+# pnl_add_postbuild(hedge)
+# TODO hedge : nécessite le prix/delta en t > 0 (pas encore implémenté).
 
 set(PRICER_SOURCES
     src/Option.cpp
@@ -74,12 +73,22 @@ set(PRICER_SOURCES
     src/MonteCarlo.cpp
 )
 
-# add_executable(price0 src/price0.cpp ${PRICER_SOURCES})
-# target_link_libraries(price0
-#     ${PNL_LIBRARIES}
-#     nlohmann_json::nlohmann_json
-# )
-# pnl_add_postbuild(price0)
+# Sources d'entrées/sorties (lecture JSON, format d'affichage) partagées par
+# les exécutables price0 / hedge.
+set(IO_SOURCES
+    src/json_helper.cpp
+    src/json_reader.cpp
+    src/option_factory.cpp
+    src/pricing_results.cpp
+)
+
+add_executable(price0 src/price0.cpp ${PRICER_SOURCES} ${IO_SOURCES})
+target_include_directories(price0 PRIVATE ${PROJECT_SOURCE_DIR}/src)
+target_link_libraries(price0
+    ${PNL_LIBRARIES}
+    nlohmann_json::nlohmann_json
+)
+pnl_add_postbuild(price0)
 
 add_executable(test_pricer test/test_pricer.cpp ${PRICER_SOURCES})
 target_include_directories(test_pricer PRIVATE ${PROJECT_SOURCE_DIR}/src)
