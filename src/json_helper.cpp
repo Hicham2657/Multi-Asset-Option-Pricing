@@ -15,9 +15,12 @@ void to_json(nlohmann::ordered_json &j, PnlVect *vect) {
     j = stl_v;
 }
 
-// Surcharge const : nécessaire pour sérialiser les membres `const PnlVect*`
-// de PricingResults.
 void to_json(nlohmann::json &j, const PnlVect *vect) {
+    std::vector<double> stl_v(vect->array, vect->array + vect->size);
+    j = stl_v;
+}
+
+void to_json(nlohmann::ordered_json &j, const PnlVect *vect) {
     std::vector<double> stl_v(vect->array, vect->array + vect->size);
     j = stl_v;
 }
