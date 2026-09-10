@@ -73,6 +73,7 @@ set(PRICER_SOURCES
     src/AsianOption.cpp
     src/BlackScholesModel.cpp
     src/MonteCarlo.cpp
+    src/OptionPerformance.cpp
 )
 
 # Sources d'entrées/sorties (lecture JSON, format d'affichage) partagées par

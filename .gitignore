@@ -6,10 +6,12 @@ src/test_call
 src/test_asian
 gmon.out
 profile.txt
-<<<<<<< Updated upstream
 pnl-win64-1.15.0/
 
-=======
-manquants/ 
+# données de test et docs (non demandés dans l'archive de rendu)
+manquants/
 data/
->>>>>>> Stashed changes
+
+# sorties des scripts de test
+resultats_tests/
+out/
