@@ -9,10 +9,7 @@ struct PricingInput;
 ///
 ///   "basket"      -> Basket
 ///   "asian"       -> AsianOption
-///   "performance" -> NON IMPLÉMENTÉ (lève std::runtime_error) : il reste à
-///                    écrire une classe PerformanceOption (payoff décrit dans
-///                    manquants/pricer.pdf, section « Option performance sur
-///                    panier ») puis à l'ajouter ici.
+///   "performance" -> OptionPerformance  (sans strike)
 ///
-/// Lève `std::runtime_error` si le type est inconnu ou non implémenté.
+/// Lève `std::runtime_error` si le type est inconnu.
 std::unique_ptr<Option> make_option(const PricingInput& in);

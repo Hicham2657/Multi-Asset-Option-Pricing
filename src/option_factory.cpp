@@ -5,6 +5,7 @@
 #include "json_reader.hpp"
 #include "Basket.hpp"
 #include "AsianOption.hpp"
+#include "OptionPerformance.hpp"
 
 std::unique_ptr<Option> make_option(const PricingInput& in)
 {
@@ -17,10 +18,9 @@ std::unique_ptr<Option> make_option(const PricingInput& in)
         return std::make_unique<AsianOption>(in.payoffCoeffs, num_steps, in.strike);
 
     if (in.optionType == "performance")
-        throw std::runtime_error(
-            "option type 'performance' non implementee : creer une classe "
-            "PerformanceOption (voir manquants/pricer.pdf) et l'ajouter dans "
-            "make_option().");
+        // L'option performance n'a pas de strike (payoff = 1 + somme des
+        // performances positives période par période).
+        return std::make_unique<OptionPerformance>(in.payoffCoeffs, num_steps);
 
     throw std::runtime_error("option type inconnu : '" + in.optionType + "'");
 }
