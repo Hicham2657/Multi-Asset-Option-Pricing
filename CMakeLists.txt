@@ -30,7 +30,7 @@ endif()
 
 # Find nlohmann_json to parse json files
 # Add nlohmann_json::nlohmann_json to target_link_libraries
-find_package(nlohmann_json)
+find_package(nlohmann_json QUIET)
 if (NOT nlohmann_json_FOUND)
     if (${CMAKE_VERSION} VERSION_GREATER "3.24.0")
         CMAKE_POLICY(SET CMP0135 NEW)
@@ -41,6 +41,8 @@ if (NOT nlohmann_json_FOUND)
 endif()
 
 ### Ne rien modifier dans la partie au dessus de cette ligne.
+
+include(CTest)
 
 # Test the parser
 add_executable(test_json_reader src/json_helper.cpp test/test_json_reader.cpp)
@@ -97,6 +99,53 @@ target_link_libraries(test_pricer
     nlohmann_json::nlohmann_json
 )
 pnl_add_postbuild(test_pricer)
+
+if (BUILD_TESTING)
+    find_package(GTest QUIET)
+    if (NOT GTest_FOUND)
+        include(FetchContent)
+        set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
+        set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
+        FetchContent_Declare(
+            googletest
+            URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.tar.gz
+            URL_HASH SHA256=8ad598c73ad796e0d8280b082cebd82a630d73e73cd3c70057938a6501bba5d7
+        )
+        FetchContent_MakeAvailable(googletest)
+    endif()
+
+    add_executable(unit_tests
+        test/unit/test_utils.cpp
+        test/unit/test_options.cpp
+        test/unit/test_black_scholes_model.cpp
+        test/unit/test_monte_carlo.cpp
+        test/unit/test_json_and_results.cpp
+        test/unit/test_portfolio.cpp
+        src/json_helper.cpp
+        src/pricing_results.cpp
+        src/portfolio.cpp
+        ${PRICER_SOURCES}
+    )
+    target_compile_features(unit_tests PRIVATE cxx_std_17)
+    target_include_directories(unit_tests PRIVATE
+        ${PROJECT_SOURCE_DIR}/src
+        ${PROJECT_SOURCE_DIR}/test/unit
+    )
+    target_link_libraries(unit_tests PRIVATE
+        ${PNL_LIBRARIES}
+        nlohmann_json::nlohmann_json
+        GTest::gtest_main
+    )
+    pnl_add_postbuild(unit_tests)
+
+    include(GoogleTest)
+    gtest_discover_tests(unit_tests)
+
+    add_test(NAME legacy_compute_lastdate COMMAND test_compute_lastdate)
+    add_test(NAME legacy_json_reader
+        COMMAND test_json_reader ${PROJECT_SOURCE_DIR}/test/data/json_reader_input.json)
+    add_test(NAME legacy_pricer COMMAND test_pricer)
+endif()
 
 
 # Print compiler flags

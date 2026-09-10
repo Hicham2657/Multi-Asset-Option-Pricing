@@ -1,6 +1,7 @@
 #pragma once
 
 #include <list>
+#include <nlohmann/json_fwd.hpp>
 #include "MonteCarlo.hpp"
 
 class Position {
