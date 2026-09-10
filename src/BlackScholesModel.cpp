@@ -23,7 +23,6 @@ BlackScholesModel::~BlackScholesModel() {
     pnl_mat_free(&_sTilde);
 }
 
-// first step = (t_{i+1} - t) if t not among t_i's
 void BlackScholesModel::simulateSTilde(int start, int N, double first_step, PnlRng* rng){
     int D = getD();
     int s_tilde_size = N - start;
@@ -77,7 +76,7 @@ void BlackScholesModel::asset(const PnlMat *past, double t, PnlMat *path, PnlRng
 void BlackScholesModel::shift_asset(double t, PnlMat* path1, PnlMat* path2,double fdstep, int asset_i){
     int N = path1->m-1;
     int i = compute_last_index(t, _timeHorizon, N);
-    for (int j=i+1;j<=N;j++){
+    for (int j=i;j<=N;j++){
         pnl_mat_set(path1, j, asset_i, pnl_mat_get(path1,j, asset_i) * (1.0 + fdstep));
         pnl_mat_set(path2, j, asset_i, pnl_mat_get(path2, j, asset_i) * (1.0 - fdstep));
     }
@@ -85,7 +84,7 @@ void BlackScholesModel::shift_asset(double t, PnlMat* path1, PnlMat* path2,doubl
 void BlackScholesModel::unshift_asset(double t, PnlMat* path1, PnlMat* path2,double fdstep, int asset_i){
     int N = path1->m-1;
     int i = compute_last_index(t, _timeHorizon, N);
-    for (int j=i+1;j<=N;j++){
+    for (int j=i;j<=N;j++){
         pnl_mat_set(path1, j, asset_i, pnl_mat_get(path1,j, asset_i) / (1.0 + fdstep));
         pnl_mat_set(path2, j, asset_i, pnl_mat_get(path2, j, asset_i) / (1.0 - fdstep));
     }
