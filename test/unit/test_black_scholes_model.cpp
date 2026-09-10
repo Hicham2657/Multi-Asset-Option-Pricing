@@ -126,14 +126,18 @@ TEST(BlackScholesModelTest, ShiftChangesOnlyFutureRowsOfSelectedAsset)
 
     model.shift_asset(0.5, upward.get(), downward.get(), 0.1, 1);
 
-    for (int row = 0; row <= 2; ++row)
+    // dt = T / N = 1.0 / 4 = 0.25 : t = 0.5 tombe exactement sur la date de
+    // constatation t_2. La ligne 2 est alors le spot courant S_t sur lequel on
+    // derive : elle doit etre bumpee, comme toutes les lignes futures.
+    // Seules les lignes 0 et 1 (constatations strictement passees) sont figees.
+    for (int row = 0; row <= 1; ++row)
     {
         EXPECT_DOUBLE_EQ(pnl_mat_get(upward.get(), row, 1),
                          pnl_mat_get(original.get(), row, 1));
         EXPECT_DOUBLE_EQ(pnl_mat_get(downward.get(), row, 1),
                          pnl_mat_get(original.get(), row, 1));
     }
-    for (int row = 3; row <= 4; ++row)
+    for (int row = 2; row <= 4; ++row)
     {
         EXPECT_NEAR(pnl_mat_get(upward.get(), row, 1),
                     1.1 * pnl_mat_get(original.get(), row, 1), 1e-12);
@@ -170,7 +174,7 @@ TEST(BlackScholesModelTest, UnshiftRestoresTheOriginalPath)
     }
 }
 
-TEST(BlackScholesModelTest, ShiftAtMaturityLeavesPathUnchanged)
+TEST(BlackScholesModelTest, ShiftAtMaturityScalesOnlyTheLastRow)
 {
     auto volatilities = makeVector({0.2});
     auto original = makeMatrix(3, 1, {100.0, 101.0, 102.0});
@@ -178,13 +182,19 @@ TEST(BlackScholesModelTest, ShiftAtMaturityLeavesPathUnchanged)
     PnlMatPtr downward{pnl_mat_copy(original.get())};
     BlackScholesModel model{0.05, volatilities.get(), 1.0, 0.0};
 
+    // t = 1.0 = T = t_N (N = 2) : la derniere ligne est le spot courant S_T,
+    // elle est donc la seule bumpee (les lignes 0 et 1 sont figees).
     model.shift_asset(1.0, upward.get(), downward.get(), 0.1, 0);
 
-    for (int row = 0; row < original->m; ++row)
+    for (int row = 0; row <= 1; ++row)
     {
         EXPECT_DOUBLE_EQ(pnl_mat_get(upward.get(), row, 0),
                          pnl_mat_get(original.get(), row, 0));
         EXPECT_DOUBLE_EQ(pnl_mat_get(downward.get(), row, 0),
                          pnl_mat_get(original.get(), row, 0));
     }
+    EXPECT_NEAR(pnl_mat_get(upward.get(), 2, 0),
+                1.1 * pnl_mat_get(original.get(), 2, 0), 1e-12);
+    EXPECT_NEAR(pnl_mat_get(downward.get(), 2, 0),
+                0.9 * pnl_mat_get(original.get(), 2, 0), 1e-12);
 }
