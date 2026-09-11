@@ -21,11 +21,15 @@ double PortfolioBuilder::PortfolioValue(const PnlMat* path,const PnlVect* deltas
 
 
 
-void PortfolioBuilder::buildPortfolio(const PnlMat* path,double fdstep,int N, double riskfree, double Maturity) { 
-    //N pas de rebalancement 
+void PortfolioBuilder::buildPortfolio(const PnlMat* path,double fdstep,int N, int H ,double riskfree, double Maturity) { 
+    //N point d'observation pour l'option //H point de balancement
+    if ((H - 1) % N != 0) {
+    throw std::invalid_argument("Les dates de fixing doivent etre incluses dans les dates de rebalancement");
+    }
+
     double portfoliovalue=0;
-    double timestep=Maturity/static_cast<double>(N);
-    double capitalisation=exp(timestep*riskfree);
+    double timestep_rebalancement=Maturity/static_cast<double>(H-1);
+    double capitalisation=exp(timestep_rebalancement*riskfree);
 
     //Initialisation
     PnlMat* past = pnl_mat_create(0, path->n);
@@ -42,9 +46,9 @@ void PortfolioBuilder::buildPortfolio(const PnlMat* path,double fdstep,int N, do
     positions.emplace_back(0,result.price,result.priceStdDev, result.delta,result.deltaStdDev,result.price);
 
     //hedging t>0
-    int step = (path->m - 1) / N;
-    for (int i = step; i < path->m; i += step){
-        time+=timestep;
+    int observationStep = (H - 1) / N;
+    for (int i = 1; i < H; i ++){
+        time+=timestep_rebalancement;
         row = pnl_vect_wrap_mat_row(path, i);
         pnl_mat_add_row(past, past->m, &row);
         result=monteCarlo->PriceAndDeltas(past,time, fdstep);
@@ -57,6 +61,9 @@ void PortfolioBuilder::buildPortfolio(const PnlMat* path,double fdstep,int N, do
         portfoliovalue=PortfolioValue(path,result.delta,i);
         positions.emplace_back(i,result.price,result.priceStdDev, result.delta,result.deltaStdDev,Cash+portfoliovalue);
         pnl_vect_clone(lastcomposition, result.delta);
+        if (i % observationStep != 0) {
+            pnl_mat_del_row(past, past->m - 1);
+        }
     }    
     pnl_mat_free(&past);
 }

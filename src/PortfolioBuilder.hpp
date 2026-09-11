@@ -16,7 +16,7 @@ protected:
 public:
     PortfolioBuilder(MonteCarlo* monteCarlo);
     double PortfolioValue(const PnlMat* path,const PnlVect* deltas,int ligne);
-    void buildPortfolio(const PnlMat* path,double fdstep,int N, double riskfree, double Maturity);
+    void buildPortfolio(const PnlMat* path,double fdstep,int N,int H , double riskfree, double Maturity);
 
     virtual ~PortfolioBuilder();
 };
