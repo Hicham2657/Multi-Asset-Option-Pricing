@@ -2,6 +2,7 @@
 #include <pnl/pnl_random.h>
 #include <pnl/pnl_matvect.h>
 #include <cstddef>
+#include "pricing_results.hpp"   // PriceAndDeltas() renvoie un PricingResults par valeur
 
 class BlackScholesModel;
 class Option;

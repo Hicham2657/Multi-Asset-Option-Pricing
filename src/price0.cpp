@@ -44,23 +44,16 @@ int main(int argc, char* argv[])
         PnlMat* past = pnl_mat_create(1, in.dim);
         pnl_mat_set_row(past, in.spots, 0);
 
-        // 4. Estimation Monte-Carlo du prix en 0.
-        const PriceAndStdDev result = engine.price(past, 0.0);
-
-        // 5. Deltas en 0, par différences finies (méthode MonteCarlo::delta).
-        PnlVect* delta = pnl_vect_create_from_zero(in.dim);
-        engine.delta(past, 0.0, in.fdStep, delta, static_cast<int>(in.sampleNb));
-
-        //    L'écart-type des deltas n'est pas encore calculé par le moteur :
-        //    on renvoie des zéros (la comparaison de distance des deltas des
-        //    scripts de test n'en a pas besoin, elle divise par l'écart-type
-        //    de référence).
-        PnlVect* deltaStdDev = pnl_vect_create_from_zero(in.dim);
-
-        const PricingResults out(result.price, result.std_dev, delta, deltaStdDev);
+        // 4. Prix ET deltas en 0 en un seul appel (moteur : MonteCarlo::PriceAndDeltas).
+        const PricingResults out = engine.PriceAndDeltas(past, 0.0, in.fdStep);
         std::cout << out << std::endl;
 
-        // 6. Libération.
+        // 5. Libération. PriceAndDeltas() alloue `delta`/`deltaStdDev` en
+        //    interne (pnl_vect_new() dans MonteCarlo::delta) et PricingResults
+        //    ne les possède pas (pas de destructeur) : c'est à l'appelant de
+        //    les libérer.
+        PnlVect* delta = const_cast<PnlVect*>(out.delta);
+        PnlVect* deltaStdDev = const_cast<PnlVect*>(out.deltaStdDev);
         pnl_vect_free(&delta);
         pnl_vect_free(&deltaStdDev);
         pnl_mat_free(&past);

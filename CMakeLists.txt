@@ -74,15 +74,14 @@ set(PRICER_SOURCES
     src/BlackScholesModel.cpp
     src/MonteCarlo.cpp
     src/OptionPerformance.cpp
+    src/pricing_results.cpp   # MonteCarlo::PriceAndDeltas() renvoie un PricingResults
+    src/json_helper.cpp       # pricing_results.cpp sérialise via to_json(..., const PnlVect*)
 )
 
-# Sources d'entrées/sorties (lecture JSON, format d'affichage) partagées par
-# les exécutables price0 / hedge.
+# Sources d'entrées/sorties (lecture JSON) partagées par les exécutables price0 / hedge.
 set(IO_SOURCES
-    src/json_helper.cpp
     src/json_reader.cpp
     src/option_factory.cpp
-    src/pricing_results.cpp
 )
 
 add_executable(price0 src/price0.cpp ${PRICER_SOURCES} ${IO_SOURCES})
@@ -122,10 +121,8 @@ if (BUILD_TESTING)
         test/unit/test_monte_carlo.cpp
         test/unit/test_json_and_results.cpp
         test/unit/test_portfolio.cpp
-        src/json_helper.cpp
-        src/pricing_results.cpp
         src/portfolio.cpp
-        ${PRICER_SOURCES}
+        ${PRICER_SOURCES}   # inclut désormais src/pricing_results.cpp et src/json_helper.cpp
     )
     target_compile_features(unit_tests PRIVATE cxx_std_17)
     target_include_directories(unit_tests PRIVATE

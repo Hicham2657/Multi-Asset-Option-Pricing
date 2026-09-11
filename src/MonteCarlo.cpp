@@ -92,7 +92,8 @@ PricingResults MonteCarlo::PriceAndDeltas(const PnlMat* past, double t, double f
     PnlVect* deltasStdDev = pnl_vect_new();
 
     delta(past, t, fd_step, deltas, deltasStdDev);
-    
+    pnl_vect_free(&deltas);
+    pnl_vect_free(&deltasStdDev); 
     return PricingResults(res.price, res.std_dev, deltas, deltasStdDev); 
 
 }
