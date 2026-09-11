@@ -5,6 +5,7 @@
 class PricingResults
 {
   public:
+  public:
     double price;
     const PnlVect* delta;
     double priceStdDev;
