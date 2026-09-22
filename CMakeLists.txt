@@ -30,7 +30,7 @@ endif()
 
 # Find nlohmann_json to parse json files
 # Add nlohmann_json::nlohmann_json to target_link_libraries
-find_package(nlohmann_json QUIET)
+find_package(nlohmann_json)
 if (NOT nlohmann_json_FOUND)
     if (${CMAKE_VERSION} VERSION_GREATER "3.24.0")
         CMAKE_POLICY(SET CMP0135 NEW)
@@ -55,18 +55,6 @@ pnl_add_postbuild(test_json_reader)
 
 add_executable(test_compute_lastdate test/test_compute_lastdate.cpp)
 
-# Pour compiler vos exécutables, compléter les lignes ci-dessous.
-# La cible price0 est définie plus bas (après PRICER_SOURCES / IO_SOURCES).
-
-# add_executable(hedge src/hedge.cpp ${PRICER_SOURCES} ${IO_SOURCES})
-# target_include_directories(hedge PRIVATE ${PROJECT_SOURCE_DIR}/src)
-# target_link_libraries(hedge
-#     ${PNL_LIBRARIES}
-#     nlohmann_json::nlohmann_json
-# )
-# pnl_add_postbuild(hedge)
-# TODO hedge : nécessite le prix/delta en t > 0 (pas encore implémenté).
-
 set(PRICER_SOURCES
     src/Option.cpp
     src/Basket.cpp
@@ -74,7 +62,7 @@ set(PRICER_SOURCES
     src/BlackScholesModel.cpp
     src/MonteCarlo.cpp
     src/OptionPerformance.cpp
-    src/pricing_results.cpp   # MonteCarlo::PriceAndDeltas() renvoie un PricingResults
+    src/pricing_results.cpp   # PricingResults, utilisé par price0/hedge pour la sortie JSON
     src/json_helper.cpp       # pricing_results.cpp sérialise via to_json(..., const PnlVect*)
 )
 
@@ -91,6 +79,20 @@ target_link_libraries(price0
     nlohmann_json::nlohmann_json
 )
 pnl_add_postbuild(price0)
+
+add_executable(hedge
+    src/hedge.cpp
+    src/portfolio.cpp
+    src/PortfolioBuilder.cpp
+    ${PRICER_SOURCES}
+    ${IO_SOURCES}
+)
+target_include_directories(hedge PRIVATE ${PROJECT_SOURCE_DIR}/src)
+target_link_libraries(hedge
+    ${PNL_LIBRARIES}
+    nlohmann_json::nlohmann_json
+)
+pnl_add_postbuild(hedge)
 
 add_executable(test_pricer test/test_pricer.cpp ${PRICER_SOURCES})
 target_include_directories(test_pricer PRIVATE ${PROJECT_SOURCE_DIR}/src)
@@ -121,7 +123,9 @@ if (BUILD_TESTING)
         test/unit/test_monte_carlo.cpp
         test/unit/test_json_and_results.cpp
         test/unit/test_portfolio.cpp
+        test/unit/test_portfolio_builder.cpp
         src/portfolio.cpp
+        src/PortfolioBuilder.cpp
         ${PRICER_SOURCES}   # inclut désormais src/pricing_results.cpp et src/json_helper.cpp
     )
     target_compile_features(unit_tests PRIVATE cxx_std_17)

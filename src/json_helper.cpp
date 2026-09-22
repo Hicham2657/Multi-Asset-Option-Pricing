@@ -5,16 +5,6 @@
 #include "json_helper.hpp"
 
 
-void to_json(nlohmann::json &j, PnlVect *vect) {
-    std::vector<double> stl_v(vect->array, vect->array + vect->size);
-    j = stl_v;
-}
-
-void to_json(nlohmann::ordered_json &j, PnlVect *vect) {
-    std::vector<double> stl_v(vect->array, vect->array + vect->size);
-    j = stl_v;
-}
-
 void to_json(nlohmann::json &j, const PnlVect *vect) {
     std::vector<double> stl_v(vect->array, vect->array + vect->size);
     j = stl_v;

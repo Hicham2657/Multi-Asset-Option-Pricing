@@ -26,19 +26,20 @@
 ///   "timestep number" / "fixing dates number" -> fixingDatesNb (N)
 ///   "sample number"                       -> sampleNb      (M)
 ///   "fd step"                             -> fdStep        (pas de diff. finie, deltas)
+///   "hedging dates number"                -> hedgingDatesNb (H, pas de rebalancement ; utilisé par hedge)
 ///
-/// Les clés "model type", "trend" et "hedging dates number" sont ignorées
-/// (non utilisées pour le prix / delta en 0).
+/// La clé "model type" et "trend" sont ignorées (non utilisées).
 struct PricingInput
 {
-    int         dim           = 0;
-    double      strike        = 0.0;
-    double      maturity      = 0.0;
-    double      interestRate  = 0.0;
-    double      correlation   = 0.0;
-    int         fixingDatesNb = 0;
-    std::size_t sampleNb      = 0;
-    double      fdStep        = 0.1;
+    int         dim            = 0;
+    double      strike         = 0.0;
+    double      maturity       = 0.0;
+    double      interestRate   = 0.0;
+    double      correlation    = 0.0;
+    int         fixingDatesNb  = 0;
+    std::size_t sampleNb       = 0;
+    double      fdStep         = 0.1;
+    int         hedgingDatesNb = 0;
     std::string optionType;
 
     PnlVect*    spots         = nullptr;

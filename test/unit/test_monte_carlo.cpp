@@ -113,45 +113,56 @@ TEST(MonteCarloTest, DeterministicInTheMoneyBasketDeltaEqualsItsWeights)
     EXPECT_NEAR(pnl_vect_get(deltaStdDev.get(), 1), 0.0, 1e-12);
 }
 
-TEST(MonteCarloTest, PriceAndDeltasAgreesWithSeparatePriceAndDeltaCalls)
+// PriceAndDeltas() fait DÉLIBÉRÉMENT une seule passe de simulation partagée
+// entre le prix et les deltas (une trajectoire par itération, réutilisée pour
+// les deux), au lieu d'appeler price() puis delta() qui tireraient chacun
+// leurs propres M trajectoires. Les deux flux de tirages aléatoires
+// consommés diffèrent donc par construction : on ne peut plus attendre une
+// égalité bit-à-bit avec price()+delta() (cf. commit "test price and deltas
+// adaptation"). On teste à la place, séparément, que PriceAndDeltas() donne
+// bien un prix et des deltas statistiquement corrects.
+
+TEST(MonteCarloTest, PriceAndDeltasPriceAgreesWithBlackScholesWithinFourStandardErrors)
 {
+    constexpr std::size_t samples = 200000;
     auto weights = makeVector({1.0});
     auto volatilities = makeVector({VOLATILITY});
     auto past = makeMatrix(1, 1, {SPOT});
     Basket call{weights.get(), 1, STRIKE};
     BlackScholesModel model{RATE, volatilities.get(), MATURITY, 0.0};
-    MonteCarlo engine{model, call, 5000};
+    MonteCarlo engine{model, call, samples};
+    const double reference = pnl_bs_call(
+        SPOT, STRIKE, MATURITY, RATE, 0.0, VOLATILITY);
 
-    // MonteCarlo est réinitialisé à la même graine (0) à chaque construction,
-    // donc deux moteurs frais consomment le même flux de tirages : appeler
-    // price() puis delta() sur l'un doit donner exactement ce que renvoie
-    // PriceAndDeltas() sur l'autre.
-    const PriceAndStdDev separate_price = engine.price(past.get(), 0.0);
+    double price = 0.0, priceStdDev = 0.0;
     PnlVectPtr deltas{pnl_vect_new()};
     PnlVectPtr deltaStdDev{pnl_vect_new()};
-    engine.delta(past.get(), 0.0, 0.1, deltas.get(), deltaStdDev.get());
+    engine.PriceAndDeltas(past.get(), 0.0, 0.1, price, priceStdDev,
+                          deltas.get(), deltaStdDev.get());
 
-    BlackScholesModel combined_model{RATE, volatilities.get(), MATURITY, 0.0};
-    MonteCarlo combined_engine{combined_model, call, 5000};
-    const PricingResults combined =
-        combined_engine.PriceAndDeltas(past.get(), 0.0, 0.1);
+    EXPECT_GT(priceStdDev, 0.0);
+    EXPECT_LE(std::abs(price - reference), 4.0 * priceStdDev)
+        << "The tolerance is four reported Monte Carlo standard errors.";
+}
 
-    EXPECT_DOUBLE_EQ(combined.price, separate_price.price);
-    EXPECT_DOUBLE_EQ(combined.priceStdDev, separate_price.std_dev);
-    ASSERT_EQ(combined.delta->size, deltas->size);
-    for (int i = 0; i < deltas->size; ++i)
-    {
-        EXPECT_DOUBLE_EQ(pnl_vect_get(combined.delta, i),
-                         pnl_vect_get(deltas.get(), i));
-        EXPECT_DOUBLE_EQ(pnl_vect_get(combined.deltaStdDev, i),
-                         pnl_vect_get(deltaStdDev.get(), i));
-    }
+TEST(MonteCarloTest, PriceAndDeltasDeltaIsDeterministicAndEqualsWeightsForZeroVolatility)
+{
+    auto weights = makeVector({0.25, 0.75});
+    auto volatilities = makeVector({0.0, 0.0});
+    auto past = makeMatrix(1, 2, {100.0, 100.0});
+    Basket call{weights.get(), 1, 50.0};
+    BlackScholesModel model{0.0, volatilities.get(), MATURITY, 0.25};
+    MonteCarlo engine{model, call, 32};
 
-    // PriceAndDeltas() alloue delta/deltaStdDev en interne (pnl_vect_new())
-    // et PricingResults ne les possède pas : c'est à l'appelant de les
-    // libérer, comme dans price0.cpp.
-    PnlVect* combined_delta = const_cast<PnlVect*>(combined.delta);
-    PnlVect* combined_delta_std_dev = const_cast<PnlVect*>(combined.deltaStdDev);
-    pnl_vect_free(&combined_delta);
-    pnl_vect_free(&combined_delta_std_dev);
+    double price = 0.0, priceStdDev = 0.0;
+    PnlVectPtr deltas{pnl_vect_new()};
+    PnlVectPtr deltaStdDev{pnl_vect_new()};
+    engine.PriceAndDeltas(past.get(), 0.0, 0.01, price, priceStdDev,
+                          deltas.get(), deltaStdDev.get());
+
+    ASSERT_EQ(deltas->size, 2);
+    EXPECT_NEAR(pnl_vect_get(deltas.get(), 0), 0.25, 1e-12);
+    EXPECT_NEAR(pnl_vect_get(deltas.get(), 1), 0.75, 1e-12);
+    EXPECT_NEAR(pnl_vect_get(deltaStdDev.get(), 0), 0.0, 1e-12);
+    EXPECT_NEAR(pnl_vect_get(deltaStdDev.get(), 1), 0.0, 1e-12);
 }
