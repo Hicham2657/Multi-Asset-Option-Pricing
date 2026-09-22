@@ -1,0 +1,79 @@
+[
+    {
+        "testCaseName": "call",
+        "comparison": {
+            "valueMaxDistance": 0.0883384996509946,
+            "priceMaxDistance": 4.400595289307803,
+            "priceStdDevMaxRatio": 1.0234063598877292,
+            "deltaMaxDistance": 4.5428392566946565,
+            "deltaStdDevMaxRatio": 1.0100448664840718,
+            "timeRatio": 2.2230173534823936
+        }
+    },
+    {
+        "testCaseName": "perf",
+        "comparison": {
+            "valueMaxDistance": 0.09720167528622548,
+            "priceMaxDistance": 4.362849710109379,
+            "priceStdDevMaxRatio": 1.0127967375294251,
+            "deltaMaxDistance": 1888.618185160405,
+            "deltaStdDevMaxRatio": 14.083484093303689,
+            "timeRatio": 3.532797021780748
+        }
+    },
+    {
+        "testCaseName": "asian",
+        "comparison": {
+            "valueMaxDistance": 0.1823307091281885,
+            "priceMaxDistance": 363358090.83899724,
+            "priceStdDevMaxRatio": 340944395.3192822,
+            "deltaMaxDistance": 1732486408.0254483,
+            "deltaStdDevMaxRatio": 91046272.6437249,
+            "timeRatio": 1.9376576070261777
+        }
+    },
+    {
+        "testCaseName": "basket_5d_1",
+        "comparison": {
+            "valueMaxDistance": 0.08412587448385622,
+            "priceMaxDistance": 5.661111541163448,
+            "priceStdDevMaxRatio": 2.736731678803874,
+            "deltaMaxDistance": 4.699430936795626,
+            "deltaStdDevMaxRatio": 2.392617773859067,
+            "timeRatio": 1.7225951249983928
+        }
+    },
+    {
+        "testCaseName": "basket_2d",
+        "comparison": {
+            "valueMaxDistance": 0.12353262775797802,
+            "priceMaxDistance": 3.7884495521233874,
+            "priceStdDevMaxRatio": 621774.9804136641,
+            "deltaMaxDistance": 4.404475388843833,
+            "deltaStdDevMaxRatio": 1.0125019865404874,
+            "timeRatio": 2.250076804984993
+        }
+    },
+    {
+        "testCaseName": "basket_40d",
+        "comparison": {
+            "valueMaxDistance": 0.033772636597205974,
+            "priceMaxDistance": 4.4660676878607335,
+            "priceStdDevMaxRatio": 2649478240.298714,
+            "deltaMaxDistance": 5.046706505088616,
+            "deltaStdDevMaxRatio": 118925240.4504784,
+            "timeRatio": 2.1382780436202466
+        }
+    },
+    {
+        "testCaseName": "basket_5d",
+        "comparison": {
+            "valueMaxDistance": 0.049210577112532405,
+            "priceMaxDistance": 3.7798371119920726,
+            "priceStdDevMaxRatio": 1.0243691513127329,
+            "deltaMaxDistance": 4.559319121647042,
+            "deltaStdDevMaxRatio": 1.0457236954877869,
+            "timeRatio": 1.31709231779066
+        }
+    }
+]
