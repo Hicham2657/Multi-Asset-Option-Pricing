@@ -53,6 +53,7 @@ PricingInput::PricingInput(const std::string& path)
     j.at("option type").get_to(optionType);
     strike = j.value("strike", 0.0);   // "strike" est absent pour "performance"
     fdStep = j.value("fd step", 0.1);  // pas de la différence finie pour les deltas
+    hedgingDatesNb = j.value("hedging dates number", 0);  // utilisé par hedge uniquement
 
     // --- vecteurs (alloués ici, libérés par le destructeur) --------------
     // Si l'une des lectures échoue, on libère ce qui a déjà été alloué avant

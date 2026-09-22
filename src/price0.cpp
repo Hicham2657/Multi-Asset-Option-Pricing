@@ -32,7 +32,7 @@ int main(int argc, char* argv[])
         // 1. Lecture des paramètres du cas de test.
         const PricingInput in(argv[1]);
 
-        // 2. Construction de l'option et du modèle de marché.
+       // 2. Construction de l'option et du modèle de marché.
         const std::unique_ptr<Option> option = make_option(in);
 
         BlackScholesModel model(in.interestRate, in.volatilities,
@@ -44,16 +44,19 @@ int main(int argc, char* argv[])
         PnlMat* past = pnl_mat_create(1, in.dim);
         pnl_mat_set_row(past, in.spots, 0);
 
-        // 4. Prix ET deltas en 0 en un seul appel (moteur : MonteCarlo::PriceAndDeltas).
-        const PricingResults out = engine.PriceAndDeltas(past, 0.0, in.fdStep);
+        // 4. Prix ET deltas en 0, calculés en une seule passe de simulation
+        //    (MonteCarlo::PriceAndDeltas). On alloue nous-mêmes les vecteurs
+        //    de sortie : PriceAndDeltas() les redimensionne/remplit en place
+        //    mais ne les possède pas.
+        double price = 0.0, priceStdDev = 0.0;
+        PnlVect* delta = pnl_vect_new();
+        PnlVect* deltaStdDev = pnl_vect_new();
+        engine.PriceAndDeltas(past, 0.0, in.fdStep, price, priceStdDev, delta, deltaStdDev);
+
+        const PricingResults out(price, priceStdDev, delta, deltaStdDev);
         std::cout << out << std::endl;
 
-        // 5. Libération. PriceAndDeltas() alloue `delta`/`deltaStdDev` en
-        //    interne (pnl_vect_new() dans MonteCarlo::delta) et PricingResults
-        //    ne les possède pas (pas de destructeur) : c'est à l'appelant de
-        //    les libérer.
-        PnlVect* delta = const_cast<PnlVect*>(out.delta);
-        PnlVect* deltaStdDev = const_cast<PnlVect*>(out.deltaStdDev);
+        // 5. Libération.
         pnl_vect_free(&delta);
         pnl_vect_free(&deltaStdDev);
         pnl_mat_free(&past);
