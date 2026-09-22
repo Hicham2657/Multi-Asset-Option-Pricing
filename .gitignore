@@ -10,8 +10,6 @@ pnl-win64-1.15.0/
 
 # données de test et docs (non demandés dans l'archive de rendu)
 manquants/
-data/
 
 # sorties des scripts de test
-resultats_tests/
 out/

@@ -1,1 +1,14 @@
-# Multi-Asset-Option-Pricing-
+BOULOUZ Amine (boulouza) mail
+ETTAHRI Hicham (ettahrih) mail
+HMIOUI Reda (hmiouir) mail
+NDONG Paul (ndongp) mail
+
+
+
+
+cmake -S . -B build -DCMAKE_PREFIX_PATH=/matieres/5MMPCPD/pnl -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j$(nproc)
+
+./build/price0 "chemin vers call.json par exemple"
+
+./build/hedge  "chemin vers call_maket.text par exemple" "chemin vers call.json par exemple"
